@@ -1,0 +1,15 @@
+{
+  "creator": "Ahmed Shaalan",
+  "description": "High-performance brightness and volume control for monitors using ddcutil. Optimized for speed and responsiveness.",
+  "name": "MonitorControl - Brightness and Volume",
+  "settings-schema": "org.gnome.shell.extensions.monitor-control",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49"
+  ],
+  "uuid": "monitor-control@ahmed-shaalan",
+  "version": 1
+}

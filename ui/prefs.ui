@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="monitor-control">
+  <template class="MBVPrefsWidget" parent="AdwPreferencesPage">
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">General</property>
+        <child>
+          <object class="AdwSwitchRow" id="show_brightness_row">
+            <property name="title" translatable="yes">Show Brightness Slider</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSwitchRow" id="show_volume_row">
+            <property name="title" translatable="yes">Show Volume Slider</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSwitchRow" id="unify_volume_row">
+            <property name="title" translatable="yes">Unify Volume</property>
+            <property name="subtitle" translatable="yes">Sets system volume to 100% and uses monitor DDC as the sole volume control</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow" id="unify_volume_warning_row">
+            <property name="visible">False</property>
+            <property name="title" translatable="yes">Monitor volume not detected</property>
+            <property name="subtitle" translatable="yes">DDC volume control is unavailable. If you have additional ddcutil arguments set, they may be interfering.</property>
+            <child type="prefix">
+              <object class="GtkImage">
+                <property name="icon-name">dialog-warning-symbolic</property>
+                <style>
+                  <class name="warning"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSpinRow" id="keyboard_step_row">
+            <property name="title" translatable="yes">Keyboard Step</property>
+            <property name="subtitle" translatable="yes">Percent to adjust per key press for brightness/volume shortcuts</property>
+            <property name="numeric">True</property>
+            <property name="adjustment">keyboard_step_adjustment</property>
+            <signal name="changed" handler="onKeyboardStepValueChanged" swapped="no"/>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Keyboard Shortcuts</property>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Brightness Up</property>
+            <child>
+              <object class="MBVShortcutWidget" id="brightness_up_button">
+                <property name="valign">center</property>
+                <property name="suggestion">XF86MonBrightnessUp</property>
+                <property name="suggestion-label">Or use brightness key:</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Brightness Down</property>
+            <child>
+              <object class="MBVShortcutWidget" id="brightness_down_button">
+                <property name="valign">center</property>
+                <property name="suggestion">XF86MonBrightnessDown</property>
+                <property name="suggestion-label">Or use brightness key:</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Volume Up</property>
+            <child>
+              <object class="MBVShortcutWidget" id="volume_up_button">
+                <property name="valign">center</property>
+                <property name="suggestion">XF86AudioRaiseVolume</property>
+                <property name="suggestion-label">Or use volume key:</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Volume Down</property>
+            <child>
+              <object class="MBVShortcutWidget" id="volume_down_button">
+                <property name="valign">center</property>
+                <property name="suggestion">XF86AudioLowerVolume</property>
+                <property name="suggestion-label">Or use volume key:</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwActionRow">
+            <property name="title" translatable="yes">Volume Mute</property>
+            <child>
+              <object class="MBVShortcutWidget" id="volume_mute_button">
+                <property name="valign">center</property>
+                <property name="suggestion">XF86AudioMute</property>
+                <property name="suggestion-label">Or use mute key:</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesGroup">
+        <property name="title" translatable="yes">Advanced</property>
+        <child>
+          <object class="AdwSpinRow" id="ddcutil_retries_row">
+            <property name="title" translatable="yes">DDC Detection Retries</property>
+            <property name="subtitle" translatable="yes">How many times to query monitors to work around unreliable DDC</property>
+            <property name="numeric">True</property>
+            <property name="adjustment">ddcutil_retries_adjustment</property>
+            <signal name="changed" handler="onRetriesValueChanged" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwSpinRow" id="sleep_multiplier_row">
+            <property name="title" translatable="yes">DDC Sleep Multiplier</property>
+            <property name="subtitle" translatable="yes">ddcutil 2.x adjusts sleep dynamically — 0.5 is a good default. Increase only if commands time out.</property>
+            <property name="digits">1</property>
+            <property name="adjustment">sleep_multiplier_adjustment</property>
+            <signal name="changed" handler="onSleepMultiplierValueChanged" swapped="no"/>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="ddcutil_path_row">
+            <property name="title" translatable="yes">ddcutil Path</property>
+            <property name="input-purpose">filename</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwEntryRow" id="ddcutil_extra_args_row">
+            <property name="title" translatable="yes">Additional ddcutil Arguments</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkAdjustment" id="ddcutil_retries_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">10</property>
+    <property name="step-increment">1</property>
+  </object>
+  <object class="GtkAdjustment" id="sleep_multiplier_adjustment">
+    <property name="lower">0.1</property>
+    <property name="upper">5.0</property>
+    <property name="step-increment">0.1</property>
+  </object>
+  <object class="GtkAdjustment" id="keyboard_step_adjustment">
+    <property name="lower">1</property>
+    <property name="upper">20</property>
+    <property name="step-increment">1</property>
+  </object>
+</interface>

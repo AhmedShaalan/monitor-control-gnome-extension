@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="monitor-control">
+  <schema id="org.gnome.shell.extensions.monitor-control"
+    path="/org/gnome/shell/extensions/monitor-control/">
+    <key type="as" name="monitor-screen-brightness-up">
+      <default><![CDATA[['<Control>XF86MonBrightnessUp']]]></default>
+      <summary>Monitor Brightness Up Keybinding</summary>
+    </key>
+    <key type="as" name="monitor-screen-brightness-down">
+      <default><![CDATA[['<Control>XF86MonBrightnessDown']]]></default>
+      <summary>Monitor Brightness Down Keybinding</summary>
+    </key>
+    <key type="as" name="monitor-volume-up">
+      <default><![CDATA[['<Control>XF86AudioRaiseVolume']]]></default>
+      <summary>Monitor Volume Up Keybinding</summary>
+    </key>
+    <key type="as" name="monitor-volume-down">
+      <default><![CDATA[['<Control>XF86AudioLowerVolume']]]></default>
+      <summary>Monitor Volume Down Keybinding</summary>
+    </key>
+    <key type="as" name="monitor-volume-mute">
+      <default><![CDATA[['<Control>XF86AudioMute']]]></default>
+      <summary>Monitor Volume Mute Keybinding</summary>
+    </key>
+    <key type="b" name="show-volume">
+      <default>true</default>
+      <summary>Show Volume</summary>
+    </key>
+    <key type="b" name="show-brightness">
+      <default>true</default>
+      <summary>Show Brightness</summary>
+    </key>
+    <key type="b" name="unify-volume">
+      <default>false</default>
+      <summary>Set system volume to 100% and control volume exclusively through DDC.</summary>
+    </key>
+    <key type="d" name="saved-system-volume">
+      <default>-1.0</default>
+      <summary>System volume saved when unify-volume is enabled. Restored when unify-volume is disabled. -1.0 means no value is saved.</summary>
+    </key>
+    <key type="b" name="monitor-volume-available">
+      <default>false</default>
+      <summary>Written by the extension after DDC detection. True if monitor volume was found.</summary>
+    </key>
+    <key type="u" name="ddcutil-retries">
+      <range min="1" max="10" />
+      <default>3</default>
+      <summary>How many times to call `ddcutil' to find monitors, to improve unreliable DDC.</summary>
+    </key>
+    <key type="s" name="ddcutil-path">
+      <default>''</default>
+      <summary>Path to the ddcutil binary. Falls back to searching $PATH if empty.</summary>
+    </key>
+    <key type="s" name="ddcutil-extra-args">
+      <default>''</default>
+      <summary>Additional arguments passed to every ddcutil invocation.</summary>
+    </key>
+    <key type="d" name="ddcutil-sleep-multiplier">
+      <range min="0.1" max="5.0" />
+      <default>1.0</default>
+      <summary>Multiplier for DDC sleep intervals. ddcutil 2.x uses dynamic sleep by default, so 0.5 is a good starting point. Increase if commands time out.</summary>
+    </key>
+    <key type="u" name="keyboard-step">
+      <range min="1" max="20" />
+      <default>5</default>
+      <summary>Step size (percent) for brightness/volume keyboard shortcuts.</summary>
+    </key>
+  </schema>
+</schemalist>

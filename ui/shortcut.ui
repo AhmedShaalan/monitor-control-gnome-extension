@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="monitor-control">
+  <template class="MBVShortcutWidget" parent="GtkStack">
+    <property name="hhomogeneous">False</property>
+    <signal name="notify::keybinding" handler="onKeybindingChanged" swapped="no"/>
+    <child>
+      <object class="GtkStackPage">
+        <property name="name">set</property>
+        <property name="child">
+          <object class="GtkButton" id="set_button">
+            <property name="label" translatable="yes">Set Shortcut…</property>
+            <signal name="clicked" handler="onSetButtonClicked" swapped="no"/>
+          </object>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkStackPage">
+        <property name="name">active</property>
+        <property name="child">
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">8</property>
+            <child>
+              <object class="GtkShortcutLabel" id="shortcut_label">
+                <property name="accelerator" bind-source="MBVShortcutWidget" bind-property="keybinding"/>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="change_button">
+                <property name="icon-name">input-keyboard-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Change shortcut</property>
+                <signal name="clicked" handler="onChangeButtonClicked" swapped="no"/>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="clear_button">
+                <property name="icon-name">edit-clear-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Clear shortcut</property>
+                <signal name="clicked" handler="onClearButtonClicked" swapped="no"/>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+  <object class="AdwWindow" id="dialog">
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="default-width">400</property>
+    <property name="title" translatable="yes">Set Shortcut</property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-start-title-buttons">False</property>
+            <property name="show-end-title-buttons">False</property>
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="valign">center</property>
+            <property name="vexpand">True</property>
+            <property name="margin-top">24</property>
+            <property name="margin-bottom">24</property>
+            <property name="spacing">16</property>
+            <child>
+              <object class="GtkImage">
+                <property name="icon-name">input-keyboard-symbolic</property>
+                <property name="pixel-size">64</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="shortcut_info_label">
+                <property name="label" translatable="yes">Press the key combination…</property>
+                <style>
+                  <class name="title-2"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Press Esc to cancel.</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <property name="margin-top">8</property>
+                <property name="margin-bottom">8</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label" translatable="yes">Or type a shortcut name:</property>
+                <style>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">horizontal</property>
+                <property name="spacing">8</property>
+                <property name="halign">center</property>
+                <child>
+                  <object class="GtkEntry" id="shortcut_entry">
+                    <property name="placeholder-text">e.g. XF86MonBrightnessUp</property>
+                    <signal name="activate" handler="onShortcutEntryActivated" swapped="no"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="apply_button">
+                    <property name="label" translatable="yes">Apply</property>
+                    <signal name="clicked" handler="onApplyButtonClicked" swapped="no"/>
+                    <style>
+                      <class name="suggested-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="suggestion_section">
+                <property name="visible">False</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">8</property>
+                <child>
+                  <object class="GtkSeparator">
+                    <property name="margin-top">8</property>
+                    <property name="margin-bottom">8</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="suggestion_section_label">
+                    <style>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="suggestion_button">
+                    <property name="halign">center</property>
+                    <signal name="clicked" handler="onSuggestionButtonClicked" swapped="no"/>
+                    <style>
+                      <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+    <child>
+      <object class="GtkEventControllerKey">
+        <signal name="key-pressed" handler="onKeyPressed" swapped="no"/>
+      </object>
+    </child>
+  </object>
+</interface>
