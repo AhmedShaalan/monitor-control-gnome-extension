@@ -399,17 +399,21 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
     this._volume.visible = false
 
     this._settings = settings
-    this._settings.connect('changed::show-brightness', this._showBrightnessSetting.bind(this))
-    this._settings.connect('changed::show-volume', this._showVolumeSetting.bind(this))
-    this._settings.connect('changed::unify-volume', () => {
-      if (this._settings.get_boolean('unify-volume')) {
-        this._saveSystemVolume()
-        if (this._volumeAvailable)
-          this._setSystemVolume100()
-      } else {
-        this._restoreSystemVolume()
-      }
-    })
+    this._settingsSignals = []
+    this._settingsSignals.push(
+      this._settings.connect('changed::show-brightness', this._showBrightnessSetting.bind(this)))
+    this._settingsSignals.push(
+      this._settings.connect('changed::show-volume', this._showVolumeSetting.bind(this)))
+    this._settingsSignals.push(
+      this._settings.connect('changed::unify-volume', () => {
+        if (this._settings.get_boolean('unify-volume')) {
+          this._saveSystemVolume()
+          if (this._volumeAvailable)
+            this._setSystemVolume100()
+        } else {
+          this._restoreSystemVolume()
+        }
+      }))
 
     this._mixerControl = new Gvc.MixerControl({ name: 'monitor-control' })
     this._mixerStateId = this._mixerControl.connect('state-changed', (_control, state) => {
@@ -422,16 +426,19 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
         this._setSystemVolume100()
     })
     this._mixerControl.open()
-    this._settings.connect('changed::ddcutil-sleep-multiplier', () => {
-      _DdcutilWrapper.sleepMultiplier = this._settings.get_double('ddcutil-sleep-multiplier')
-    })
-    this._settings.connect('changed::ddcutil-extra-args', () => {
-      _DdcutilWrapper.additionalArgs = this._parseExtraArgs(
-        this._settings.get_string('ddcutil-extra-args'))
-    })
-    this._settings.connect('changed::ddcutil-path', () => {
-      _DdcutilWrapper.binaryPath = this._settings.get_string('ddcutil-path').trim()
-    })
+    this._settingsSignals.push(
+      this._settings.connect('changed::ddcutil-sleep-multiplier', () => {
+        _DdcutilWrapper.sleepMultiplier = this._settings.get_double('ddcutil-sleep-multiplier')
+      }))
+    this._settingsSignals.push(
+      this._settings.connect('changed::ddcutil-extra-args', () => {
+        _DdcutilWrapper.additionalArgs = this._parseExtraArgs(
+          this._settings.get_string('ddcutil-extra-args'))
+      }))
+    this._settingsSignals.push(
+      this._settings.connect('changed::ddcutil-path', () => {
+        _DdcutilWrapper.binaryPath = this._settings.get_string('ddcutil-path').trim()
+      }))
 
     // disable ourselves on logout so that any ddcutil processes that
     // are still active get killed
@@ -527,6 +534,9 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
       this._monitorsChangedSignal = null
     }
 
+    for (const id of this._settingsSignals ?? [])
+      this._settings.disconnect(id)
+    this._settingsSignals = null
     this._settings = null
 
     if (this._mixerStateId) {

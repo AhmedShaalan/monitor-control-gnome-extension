@@ -32,6 +32,12 @@ const PrefsWidget = GObject.registerClass({
     _init(settings, params = {}) {
         super._init(params);
         this._settings = settings;
+        this._settingsSignals = [];
+        this.connect('destroy', () => {
+            for (const id of this._settingsSignals)
+                this._settings.disconnect(id);
+            this._settingsSignals = null;
+        });
 
         this._settings.bind(
             'show-brightness',
@@ -59,8 +65,10 @@ const PrefsWidget = GObject.registerClass({
             const available = this._settings.get_boolean('monitor-volume-available');
             this._unify_volume_warning_row.visible = unify && !available;
         };
-        this._settings.connect('changed::unify-volume', updateUnifyWarning);
-        this._settings.connect('changed::monitor-volume-available', updateUnifyWarning);
+        this._settingsSignals.push(
+            this._settings.connect('changed::unify-volume', updateUnifyWarning));
+        this._settingsSignals.push(
+            this._settings.connect('changed::monitor-volume-available', updateUnifyWarning));
         updateUnifyWarning();
 
         this._ddcutil_retries_row.value = this._settings.get_uint('ddcutil-retries');
@@ -88,9 +96,10 @@ const PrefsWidget = GObject.registerClass({
     }
 
     _bindShortcut(settingsKey, widget) {
-        this._settings.connect(`changed::${settingsKey}`, () => {
-            widget.keybinding = this._settings.get_strv(settingsKey)[0] ?? '';
-        });
+        this._settingsSignals.push(
+            this._settings.connect(`changed::${settingsKey}`, () => {
+                widget.keybinding = this._settings.get_strv(settingsKey)[0] ?? '';
+            }));
         widget.connect('notify::keybinding', () => {
             this._settings.set_strv(settingsKey, widget.keybinding ? [widget.keybinding] : []);
         });
