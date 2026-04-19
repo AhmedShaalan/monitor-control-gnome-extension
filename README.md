@@ -2,7 +2,9 @@
 
 **Near-instant DDC/CI brightness and volume control for external monitors, built right into the GNOME Quick Settings panel.**
 
-![Quick Settings panel showing brightness and volume sliders](screenshots/quick-settings.png)
+<p align="center">
+  <img src="screenshots/quick-settings.png" alt="Quick Settings panel showing brightness and volume sliders" />
+</p>
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45%E2%80%9349-informational)](https://extensions.gnome.org)
@@ -15,6 +17,7 @@
 - 🔊 **Unify Volume** — locks GNOME's system volume at 100% and delegates all volume control to your monitor's DDC, eliminating double-volume confusion
 - ⌨️ **Keyboard shortcuts** with live key-capture dialog and configurable step size
 - 🔇 **Mute shortcut** — toggles monitor volume between 0 and its last non-zero value
+- 🎧 **Headphone awareness** — DDC volume keys automatically yield to the system volume handler when headphones or a headset is the active audio output, and re-engage when you switch back to speakers
 - 🛠️ **Custom ddcutil path** — point to any ddcutil binary, no `$PATH` required
 - 🔔 **Error notifications** — system notification if `ddcutil setvcp` fails
 - ⚡ Optimized for **ddcutil 2.x** dynamic sleep for maximum responsiveness
@@ -159,6 +162,7 @@ Significant changes in this fork:
 - ⚡ ddcutil 2.x optimizations
 - 🛠️ Custom ddcutil binary path
 - 🔔 Error feedback via system notifications
+- 🎧 Headphone awareness — DDC volume keys yield to system volume when headphones are active
 
 ---
 
