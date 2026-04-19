@@ -161,7 +161,7 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   _showVolumeSetting () {
     this._settings?.set_boolean('monitor-volume-available', !!this._volumeAvailable)
     this._volume.visible = this._volumeAvailable && this._settings?.get_boolean('show-volume')
-    this._setVolumeKeys(this._volumeAvailable && this._settings?.get_boolean('show-volume'))
+    this._updateVolumeKeysForSink()
     if (this._volumeAvailable && this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
@@ -175,6 +175,27 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
     } catch {
       return []
     }
+  }
+
+  // returns true when headphones/headset is the active output port,
+  // meaning DDC volume keys should yield to the system volume handler
+  _isHeadphoneActive () {
+    if (this._mixerControl?.get_state() !== Gvc.MixerControlState.READY)
+      return false
+    const stream = this._mixerControl.get_default_sink()
+    if (!stream) return false
+    const port = stream.get_port()?.port
+    if (!port) return false
+    return /headphone|headset/i.test(port)
+  }
+
+  // enable or disable volume keybindings depending on volume availability,
+  // settings, and whether headphones are currently the active output
+  _updateVolumeKeysForSink () {
+    const shouldEnable = !!this._volumeAvailable &&
+      !!this._settings?.get_boolean('show-volume') &&
+      !this._isHeadphoneActive()
+    this._setVolumeKeys(shouldEnable)
   }
 
   // set the default audio sink to 100% so DDC is the sole volume control
@@ -422,8 +443,12 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
         this._setSystemVolume100()
     })
     this._mixerDefaultSinkId = this._mixerControl.connect('default-sink-changed', () => {
+      this._updateVolumeKeysForSink()
       if (this._settings?.get_boolean('unify-volume'))
         this._setSystemVolume100()
+    })
+    this._mixerActiveOutputId = this._mixerControl.connect('active-output-update', () => {
+      this._updateVolumeKeysForSink()
     })
     this._mixerControl.open()
     this._settingsSignals.push(
@@ -546,6 +571,10 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
     if (this._mixerDefaultSinkId) {
       this._mixerControl.disconnect(this._mixerDefaultSinkId)
       this._mixerDefaultSinkId = null
+    }
+    if (this._mixerActiveOutputId) {
+      this._mixerControl.disconnect(this._mixerActiveOutputId)
+      this._mixerActiveOutputId = null
     }
     this._mixerControl = null
 
