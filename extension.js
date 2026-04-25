@@ -432,16 +432,12 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
     const newValue = Math.min(1, this._volume?.slider.value + this._keyboardStep())
     this._volume.slider.value = newValue
     this._showOsd(this._volume.iconName, 'Monitor', newValue)
-    if (this._settings?.get_boolean('unify-volume'))
-      this._setSystemVolume100()
   }
 
   async volumeDownKey () {
     const newValue = Math.max(0, this._volume?.slider.value - this._keyboardStep())
     this._volume.slider.value = newValue
     this._showOsd(this._volume.iconName, 'Monitor', newValue)
-    if (this._settings?.get_boolean('unify-volume'))
-      this._setSystemVolume100()
   }
 
   async volumeMuteKey () {
@@ -455,8 +451,6 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
     }
     this._volume.slider.value = newValue
     this._showOsd(this._volume.iconName, 'Monitor', newValue)
-    if (this._settings?.get_boolean('unify-volume'))
-      this._setSystemVolume100()
   }
 
   // callback when a change in monitor configuration was detected
