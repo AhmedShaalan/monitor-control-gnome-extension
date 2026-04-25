@@ -246,8 +246,11 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
           this._getMediaSettings(),
           [
             ['volume-up-static',   'monitor-volume-up'],
+            ['volume-up',          'monitor-volume-up'],
             ['volume-down-static', 'monitor-volume-down'],
+            ['volume-down',        'monitor-volume-down'],
             ['volume-mute-static', 'monitor-volume-mute'],
+            ['volume-mute',        'monitor-volume-mute'],
           ],
           '_savedMediaBindings'
         )
@@ -400,7 +403,8 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
 
   // GNOME 49 split OsdWindowManager.show() into showAll/showOne/show.
   // Use showAll (GNOME 49+) when available, fall back to the old show() (GNOME 46-48).
-  _showOsd (icon, label, level) {
+  _showOsd (iconName, label, level) {
+    const icon = Gio.ThemedIcon.new(iconName)
     if (Main.osdWindowManager.showAll)
       Main.osdWindowManager.showAll(icon, label, level, 1)
     else
@@ -415,19 +419,19 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   async brightnessUpKey () {
     const newValue = Math.min(1, this._brightness?.slider.value + this._keyboardStep())
     this._brightness.slider.value = newValue
-    this._showOsd(this._brightness.gicon, 'Monitor', newValue)
+    this._showOsd(this._brightness.iconName, 'Monitor', newValue)
   }
 
   async brightnessDownKey () {
     const newValue = Math.max(0, this._brightness?.slider.value - this._keyboardStep())
     this._brightness.slider.value = newValue
-    this._showOsd(this._brightness.gicon, 'Monitor', newValue)
+    this._showOsd(this._brightness.iconName, 'Monitor', newValue)
   }
 
   async volumeUpKey () {
     const newValue = Math.min(1, this._volume?.slider.value + this._keyboardStep())
     this._volume.slider.value = newValue
-    this._showOsd(this._volume.gicon, 'Monitor', newValue)
+    this._showOsd(this._volume.iconName, 'Monitor', newValue)
     if (this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
@@ -435,7 +439,7 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   async volumeDownKey () {
     const newValue = Math.max(0, this._volume?.slider.value - this._keyboardStep())
     this._volume.slider.value = newValue
-    this._showOsd(this._volume.gicon, 'Monitor', newValue)
+    this._showOsd(this._volume.iconName, 'Monitor', newValue)
     if (this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
@@ -450,7 +454,7 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
       newValue = this._volumeMuteRestoreValue ?? 0.5
     }
     this._volume.slider.value = newValue
-    this._showOsd(this._volume.gicon, 'Monitor', newValue)
+    this._showOsd(this._volume.iconName, 'Monitor', newValue)
     if (this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
