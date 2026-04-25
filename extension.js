@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Copyright (C) 2025 Ahmed Shaalan
 
+import Gio    from 'gi://Gio'
 import GLib    from 'gi://GLib'
 import Gvc     from 'gi://Gvc'
 import Meta    from 'gi://Meta'
@@ -233,38 +234,59 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
 
   // (dis)connect global keyboard shortcuts for monitor volume
   _setVolumeKeys (enabled) {
+    // cancel any pending deferred volume-key registration
+    if (this._volumeKeyPendingId) {
+      GLib.source_remove(this._volumeKeyPendingId)
+      this._volumeKeyPendingId = null
+    }
+
     if (enabled) {
       if (!this._volumeKeys) {
-        Main.wm.addKeybinding(
-          'monitor-volume-up',
-          this._settings,
-          Meta.KeyBindingFlags.NONE,
-          Shell.ActionMode.ALL,
-          this.volumeUpKey.bind(this)
+        this._pauseConflicts(
+          this._getMediaSettings(),
+          [
+            ['volume-up-static',   'monitor-volume-up'],
+            ['volume-down-static', 'monitor-volume-down'],
+            ['volume-mute-static', 'monitor-volume-mute'],
+          ],
+          '_savedMediaBindings'
         )
-        Main.wm.addKeybinding(
-          'monitor-volume-down',
-          this._settings,
-          Meta.KeyBindingFlags.NONE,
-          Shell.ActionMode.ALL,
-          this.volumeDownKey.bind(this)
-        )
-        Main.wm.addKeybinding(
-          'monitor-volume-mute',
-          this._settings,
-          Meta.KeyBindingFlags.NONE,
-          Shell.ActionMode.ALL,
-          this.volumeMuteKey.bind(this)
-        )
-        this._volumeKeys = true
+        // gsd-media-keys ungrabs asynchronously via D-Bus; give it 100 ms
+        this._volumeKeyPendingId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+          this._volumeKeyPendingId = null
+          Main.wm.addKeybinding(
+            'monitor-volume-up',
+            this._settings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.ALL,
+            this.volumeUpKey.bind(this)
+          )
+          Main.wm.addKeybinding(
+            'monitor-volume-down',
+            this._settings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.ALL,
+            this.volumeDownKey.bind(this)
+          )
+          Main.wm.addKeybinding(
+            'monitor-volume-mute',
+            this._settings,
+            Meta.KeyBindingFlags.NONE,
+            Shell.ActionMode.ALL,
+            this.volumeMuteKey.bind(this)
+          )
+          this._volumeKeys = true
+          return GLib.SOURCE_REMOVE
+        })
       }
     } else {
       if (this._volumeKeys) {
-        Main.wm.removeKeybinding('monitor-volume-up');
-        Main.wm.removeKeybinding('monitor-volume-down');
-        Main.wm.removeKeybinding('monitor-volume-mute');
+        Main.wm.removeKeybinding('monitor-volume-up')
+        Main.wm.removeKeybinding('monitor-volume-down')
+        Main.wm.removeKeybinding('monitor-volume-mute')
         this._volumeKeys = false
       }
+      this._resumeConflicts(this._getMediaSettings(), '_savedMediaBindings')
     }
   }
 
@@ -272,6 +294,17 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   _setBrightnessKeys (enabled) {
     if (enabled) {
       if (!this._brightnessKeys) {
+        // GNOME Shell 47+ claims XF86MonBrightness* itself; clear those bindings
+        // first so our add_keybinding wins.  The changed:: signal fires
+        // synchronously within the same process, releasing the key immediately.
+        this._pauseConflicts(
+          this._getShellSettings(),
+          [
+            ['screen-brightness-up',   'monitor-screen-brightness-up'],
+            ['screen-brightness-down', 'monitor-screen-brightness-down'],
+          ],
+          '_savedShellBindings'
+        )
         Main.wm.addKeybinding(
           'monitor-screen-brightness-up',
           this._settings,
@@ -290,11 +323,51 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
       }
     } else {
       if (this._brightnessKeys) {
-        Main.wm.removeKeybinding('monitor-screen-brightness-up');
-        Main.wm.removeKeybinding('monitor-screen-brightness-down');
+        Main.wm.removeKeybinding('monitor-screen-brightness-up')
+        Main.wm.removeKeybinding('monitor-screen-brightness-down')
         this._brightnessKeys = false
       }
+      this._resumeConflicts(this._getShellSettings(), '_savedShellBindings')
     }
+  }
+
+  // Remove entries from a system GSettings key that would prevent our
+  // add_keybinding from succeeding.  Saves the original so we can restore it.
+  // pairs: array of [systemSchemaKey, ourExtensionSchemaKey]
+  // stateField: name of the instance property used to store the saved values
+  _pauseConflicts (systemSettings, pairs, stateField) {
+    for (const [sysKey, extKey] of pairs) {
+      if (!systemSettings.settings_schema.has_key(sysKey)) continue
+      const ours   = this._settings?.get_strv(extKey) ?? []
+      const theirs = systemSettings.get_strv(sysKey)
+      const hits   = theirs.filter(k => ours.includes(k))
+      if (hits.length === 0) continue
+      if (!this[stateField]) this[stateField] = {}
+      this[stateField][sysKey] = theirs
+      systemSettings.set_strv(sysKey, theirs.filter(k => !hits.includes(k)))
+    }
+  }
+
+  // Restore the system GSettings entries saved by _pauseConflicts.
+  _resumeConflicts (systemSettings, stateField) {
+    if (!this[stateField]) return
+    for (const [key, value] of Object.entries(this[stateField]))
+      systemSettings.set_strv(key, value)
+    this[stateField] = null
+  }
+
+  _getShellSettings () {
+    if (!this._shellSettings)
+      this._shellSettings = new Gio.Settings({ schema: 'org.gnome.shell.keybindings' })
+    return this._shellSettings
+  }
+
+  _getMediaSettings () {
+    if (!this._mediaSettings)
+      this._mediaSettings = new Gio.Settings({
+        schema: 'org.gnome.settings-daemon.plugins.media-keys',
+      })
+    return this._mediaSettings
   }
 
   // show a notification on the first setvcp failure per session
@@ -531,6 +604,12 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   disable () {
     this._injectionManager.clear()
     this._injectionManager = null
+
+    // cancel deferred volume-key registration so it can't fire after disable
+    if (this._volumeKeyPendingId) {
+      GLib.source_remove(this._volumeKeyPendingId)
+      this._volumeKeyPendingId = null
+    }
 
     if (this._shutdownSignal) {
       global.disconnect(this._shutdownSignal)
