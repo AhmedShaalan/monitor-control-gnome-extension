@@ -251,33 +251,7 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
           ],
           '_savedMediaBindings'
         )
-        // gsd-media-keys ungrabs asynchronously via D-Bus; give it 100 ms
-        this._volumeKeyPendingId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
-          this._volumeKeyPendingId = null
-          Main.wm.addKeybinding(
-            'monitor-volume-up',
-            this._settings,
-            Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.ALL,
-            this.volumeUpKey.bind(this)
-          )
-          Main.wm.addKeybinding(
-            'monitor-volume-down',
-            this._settings,
-            Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.ALL,
-            this.volumeDownKey.bind(this)
-          )
-          Main.wm.addKeybinding(
-            'monitor-volume-mute',
-            this._settings,
-            Meta.KeyBindingFlags.NONE,
-            Shell.ActionMode.ALL,
-            this.volumeMuteKey.bind(this)
-          )
-          this._volumeKeys = true
-          return GLib.SOURCE_REMOVE
-        })
+        this._tryRegisterVolumeKeys()
       }
     } else {
       if (this._volumeKeys) {
@@ -287,6 +261,35 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
         this._volumeKeys = false
       }
       this._resumeConflicts(this._getMediaSettings(), '_savedMediaBindings')
+    }
+  }
+
+  // Try to register volume keybindings, retrying every 200 ms (up to 10 times)
+  // if gsd-media-keys hasn't finished releasing its grab yet.
+  _tryRegisterVolumeKeys (retries = 10) {
+    const up   = Main.wm.addKeybinding('monitor-volume-up', this._settings,
+      Meta.KeyBindingFlags.NONE, Shell.ActionMode.ALL, this.volumeUpKey.bind(this))
+    const down = Main.wm.addKeybinding('monitor-volume-down', this._settings,
+      Meta.KeyBindingFlags.NONE, Shell.ActionMode.ALL, this.volumeDownKey.bind(this))
+    const mute = Main.wm.addKeybinding('monitor-volume-mute', this._settings,
+      Meta.KeyBindingFlags.NONE, Shell.ActionMode.ALL, this.volumeMuteKey.bind(this))
+
+    if (up && down && mute) {
+      this._volumeKeys = true
+      return
+    }
+
+    // At least one binding failed — roll back the partial registrations and retry
+    if (up)   Main.wm.removeKeybinding('monitor-volume-up')
+    if (down) Main.wm.removeKeybinding('monitor-volume-down')
+    if (mute) Main.wm.removeKeybinding('monitor-volume-mute')
+
+    if (retries > 0) {
+      this._volumeKeyPendingId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+        this._volumeKeyPendingId = null
+        this._tryRegisterVolumeKeys(retries - 1)
+        return GLib.SOURCE_REMOVE
+      })
     }
   }
 
