@@ -7,7 +7,7 @@
 </p>
 
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](LICENSE)
-[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45%E2%80%9349-informational)](https://extensions.gnome.org)
+[![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-45%E2%80%9349-informational)](https://extensions.gnome.org/extension/9665/monitorcontrol-brightness-and-volume/)
 
 ---
 
@@ -67,7 +67,7 @@ Full guide: [ddcutil i2c_permissions](https://www.ddcutil.com/i2c_permissions/)
 
 ### From GNOME Extensions website
 
-Install directly from [extensions.gnome.org](https://extensions.gnome.org) *(link coming soon)*.
+Install directly from [extensions.gnome.org](https://extensions.gnome.org/extension/9665/monitorcontrol-brightness-and-volume/).
 
 ### Manual
 
