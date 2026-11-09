@@ -41,6 +41,17 @@ const RETRY_DELAY_MS = 1000
 // default step if settings are unavailable
 const KEYBOARD_STEP_DEFAULT = 2
 
+// Show the OSD on every monitor. GNOME Shell 50 changed the signature of
+// OsdWindowManager.show() to (icon, label, levels) and added showAll() for
+// the all-monitors case; older versions take a monitor index of -1 instead.
+function showOsd (icon, level) {
+  const osd = Main.osdWindowManager
+  if (typeof osd.showAll === 'function')
+    osd.showAll(icon, 'Monitor', level, 1)
+  else
+    osd.show(-1, icon, 'Monitor', level, 1)
+}
+
 
 // The extension adds a Volume and Brightness slider to the
 // QuickSettings menu. These sliders control the externally connected
@@ -330,19 +341,19 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   async brightnessUpKey () {
     const newValue = Math.min(1, this._brightness?.slider.value + this._keyboardStep())
     this._brightness.slider.value = newValue
-    Main.osdWindowManager.show(-1, this._brightness.gicon, 'Monitor', newValue, 1)
+    showOsd(this._brightness.gicon, newValue)
   }
 
   async brightnessDownKey () {
     const newValue = Math.max(0, this._brightness?.slider.value - this._keyboardStep())
     this._brightness.slider.value = newValue
-    Main.osdWindowManager.show(-1, this._brightness.gicon, 'Monitor', newValue, 1)
+    showOsd(this._brightness.gicon, newValue)
   }
 
   async volumeUpKey () {
     const newValue = Math.min(1, this._volume?.slider.value + this._keyboardStep())
     this._volume.slider.value = newValue
-    Main.osdWindowManager.show(-1, this._volume.gicon, 'Monitor', newValue, 1)
+    showOsd(this._volume.gicon, newValue)
     if (this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
@@ -350,7 +361,7 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
   async volumeDownKey () {
     const newValue = Math.max(0, this._volume?.slider.value - this._keyboardStep())
     this._volume.slider.value = newValue
-    Main.osdWindowManager.show(-1, this._volume.gicon, 'Monitor', newValue, 1)
+    showOsd(this._volume.gicon, newValue)
     if (this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
@@ -365,7 +376,7 @@ export default class MonitorBrightnessVolumeExtension extends Extension {
       newValue = this._volumeMuteRestoreValue ?? 0.5
     }
     this._volume.slider.value = newValue
-    Main.osdWindowManager.show(-1, this._volume.gicon, 'Monitor', newValue, 1)
+    showOsd(this._volume.gicon, newValue)
     if (this._settings?.get_boolean('unify-volume'))
       this._setSystemVolume100()
   }
