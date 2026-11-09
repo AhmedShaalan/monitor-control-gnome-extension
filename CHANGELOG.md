@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Keyboard-shortcut OSD not showing on GNOME Shell 50 and later (`OsdWindowManager.show()` signature change); falls back to the old call on earlier versions
+
+### Changed
+- Declare support for GNOME Shell 50 and 51 in `metadata.json`
+
 ## 1
 
 ### Added
